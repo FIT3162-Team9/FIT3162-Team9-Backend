@@ -11,8 +11,13 @@ db = firebase_admin.firestore.client(app=None)
 
 temperature_data = {}
 limit = 20000
+lim_count = 0
 
-existing_stations = [76031, 76047, 76064]
+min_year = 2007
+
+# stations in database
+existing_stations = ['76031', '76047', '76064', '77094'];
+ignore_stations = ['77010', '78015']
 
 with open('../temperature_data/vic_temperature_data.csv') as file:
     reader = csv.reader(file, delimiter=",")
@@ -20,17 +25,25 @@ with open('../temperature_data/vic_temperature_data.csv') as file:
         if i == 0:
             print(i, row)
         else:
-            if i == limit:
+            if lim_count == limit:
                 break
 
             station_num = int(float(row[1]))
+            station_str = str(station_num)
+
+            if station_str in existing_stations or station_str in ignore_stations:
+                continue
+
+            print(station_str, end=" ")
+
             year = int(float(row[2]))
             month = int(float(row[3]))
             day = int(float(row[4]))
             max_temp = float(row[5])
             min_temp = float(row[9])
 
-            station_str = str(station_num)
+            lim_count += 1
+
             year_str = '{:04d}'.format(year)
             month_str = "{:02d}".format(month)
             day_str = '{:02d}'.format(day)
