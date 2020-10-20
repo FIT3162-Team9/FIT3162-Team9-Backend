@@ -9,32 +9,19 @@ firebase_admin.initialize_app(cred)
 
 db = firebase_admin.firestore.client(app=None)
 
-temperature_data = {}
+lga_data = {}
 limit = 20000
 lim_count = 0
 
-# stations in database
-existing_stations = ['76031', '76047', '76064', '77094']
-ignore_stations = ['77010', '78015']
 
-required_stations = ['89002',
-                     '81123',
-                     '85072',
-                     '85296',
-                     '86282',
-                     '76031',
-                     '76047',
-                     '76064',
-                     '77010',
-                     '78015',
-                     '79028',
-                     '79097',
-                     '79100',
-                     '90171',
-                     '90184',
-                     '86068']
+def to_snake_case(string):
+    if string == "":
+        return 'none'
 
-with open('../temperature_data/vic_temperature_data.csv') as file:
+    return "_".join(string.replace('/', "_").lower().split(' '))
+
+
+with open('../data/processed_humidity_windspeed_data.csv') as file:
     reader = csv.reader(file, delimiter=",")
     for i, row in enumerate(reader):
         if i == 0:
@@ -43,22 +30,19 @@ with open('../temperature_data/vic_temperature_data.csv') as file:
             if lim_count % 1000 == 0:
                 print('----- added {} rows -----'.format(lim_count))
 
-            station_num = int(float(row[1]))
-            station_str = str(station_num)
+            location = row[6]
+            location_str = to_snake_case(location)
 
-            if station_str not in required_stations:
-                continue
-
-            print(station_str, end=" ")
+            print(location_str, end=" ")
 
             if row[2] == "" or row[3] == "" or row[4] == "":
                 continue
 
+            day = int(float(row[0]))
+            month = int(float(row[1]))
             year = int(float(row[2]))
-            month = int(float(row[3]))
-            day = int(float(row[4]))
-            max_temp = float(row[5])
-            min_temp = float(row[9])
+            humidity = float(row[3])
+            windspeed = float(row[7])
 
             lim_count += 1
 
@@ -72,14 +56,14 @@ with open('../temperature_data/vic_temperature_data.csv') as file:
             # print('{} - {} {} {} ({}) : {} {}'.format(station_num, year_str, month_str,
             #                                           day_str, timestamp, max_temp, min_temp))
 
-            entry = {'day': day, 'month': month, 'year': year, 'timestamp': timestamp, 'min': min_temp, 'max': max_temp}
+            entry = {'day': day, 'month': month, 'year': year, 'timestamp': timestamp, 'humidity': humidity, 'windspeed': windspeed}
             # print(station_num, date_str, entry)
             # temperature_data[station_num] = entry
 
-            if station_str in temperature_data:
-                temperature_data[station_str][date_str] = entry
+            if location_str in lga_data:
+                lga_data[location_str][date_str] = entry
             else:
-                temperature_data[station_str] = {date_str: entry}
+                lga_data[location_str] = {date_str: entry}
 
                 # temperature_data[station_num] = {date_str: entry}
             # print(i, row)
@@ -87,14 +71,14 @@ with open('../temperature_data/vic_temperature_data.csv') as file:
             # date_formatted = '{}-{}-{}'.format(row[2], row[3], row[4])
             # max_temp[date] = {'value': float(row[5]), 'date': date_formatted}
 
-for station, all_entries in temperature_data.items():
-    station_ref = db.collection('data').document('temperature').collection(station)
+for lga, all_entries in lga_data.items():
+    lga_ref = db.collection('data').document('humidity_wind').collection(lga)
 
-    print(station)
+    print(lga)
     for date_str, entry in all_entries.items():
-        doc_ref = station_ref.document(date_str)
+        doc_ref = lga_ref.document(date_str)
         doc_ref.set(entry)
-        print(station, date_str, entry)
+        print(lga, date_str, entry)
 
 # for date, value in max_temp.items():
 #     print(date, value)
