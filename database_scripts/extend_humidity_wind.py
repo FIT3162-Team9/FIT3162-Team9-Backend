@@ -72,23 +72,14 @@ with open('../data/processed_humidity_windspeed_data.csv') as file:
 
                 timestamp = int(datetime.datetime.timestamp(new_datetime))
 
-                # print('{} - {} {} {} ({}) : {} {}'.format(station_num, year_str, month_str,
-                #                                           day_str, timestamp, max_temp, min_temp))
-
                 entry = {'day': day, 'month': month, 'year': year, 'timestamp': timestamp, 'humidity': humidity, 'windspeed': windspeed}
-                # print(station_num, date_str, entry)
-                # temperature_data[station_num] = entry
 
                 if location_str in lga_data:
                     lga_data[location_str][date_str] = entry
                 else:
                     lga_data[location_str] = {date_str: entry}
 
-                    # temperature_data[station_num] = {date_str: entry}
-                # print(i, row)
-                # if row[5] != '':
-                # date_formatted = '{}-{}-{}'.format(row[2], row[3], row[4])
-                # max_temp[date] = {'value': float(row[5]), 'date': date_formatted}
+
 
 for lga, all_entries in lga_data.items():
     lga_ref = db.collection('data').document('humidity_wind').collection(lga)
@@ -97,9 +88,5 @@ for lga, all_entries in lga_data.items():
     for date_str, entry in all_entries.items():
         doc_ref = lga_ref.document(date_str)
         doc_ref.set(entry)
-        print(lga, date_str, entry)
+        # print(lga, date_str, entry)
 
-# for date, value in max_temp.items():
-#     print(date, value)
-#     doc_ref = station_ref.document(date)
-#     doc_ref.set(value)

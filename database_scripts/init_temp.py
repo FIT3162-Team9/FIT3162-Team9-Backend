@@ -69,23 +69,14 @@ with open('../temperature_data/vic_temperature_data.csv') as file:
 
             element = datetime.datetime(int(year), int(month), int(float(day)))
             timestamp = int(datetime.datetime.timestamp(element))
-            # print('{} - {} {} {} ({}) : {} {}'.format(station_num, year_str, month_str,
-            #                                           day_str, timestamp, max_temp, min_temp))
 
             entry = {'day': day, 'month': month, 'year': year, 'timestamp': timestamp, 'min': min_temp, 'max': max_temp}
-            # print(station_num, date_str, entry)
-            # temperature_data[station_num] = entry
 
             if station_str in temperature_data:
                 temperature_data[station_str][date_str] = entry
             else:
                 temperature_data[station_str] = {date_str: entry}
 
-                # temperature_data[station_num] = {date_str: entry}
-            # print(i, row)
-            # if row[5] != '':
-            # date_formatted = '{}-{}-{}'.format(row[2], row[3], row[4])
-            # max_temp[date] = {'value': float(row[5]), 'date': date_formatted}
 
 for station, all_entries in temperature_data.items():
     station_ref = db.collection('data').document('temperature').collection(station)
@@ -95,8 +86,3 @@ for station, all_entries in temperature_data.items():
         doc_ref = station_ref.document(date_str)
         doc_ref.set(entry)
         print(station, date_str, entry)
-
-# for date, value in max_temp.items():
-#     print(date, value)
-#     doc_ref = station_ref.document(date)
-#     doc_ref.set(value)
