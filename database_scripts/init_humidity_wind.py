@@ -35,14 +35,19 @@ with open('../data/processed_humidity_windspeed_data.csv') as file:
 
             print(location_str, end=" ")
 
+            # Ensure that the year, humidity, and state exist
+            # The missing values had always had one of these 3 missing hence allows us to ignore the right files
             if row[2] == "" or row[3] == "" or row[4] == "":
                 continue
 
-            day = int(float(row[0]))
-            month = int(float(row[1]))
-            year = int(float(row[2]))
-            humidity = float(row[3])
-            windspeed = float(row[7])
+            try:
+                day = int(float(row[0]))
+                month = int(float(row[1]))
+                year = int(float(row[2]))
+                humidity = float(row[3])
+                windspeed = float(row[7])
+            except Exception as e:
+                raise ValueError("CSV has unexpected value type:", e)
 
             lim_count += 1
 
@@ -51,25 +56,16 @@ with open('../data/processed_humidity_windspeed_data.csv') as file:
             day_str = '{:02d}'.format(day)
             date_str = '{}{}{}'.format(year_str, month_str, day_str)
 
-            element = datetime.datetime(int(year), int(month), int(float(day)))
+            element = datetime.datetime(year, month, day)
             timestamp = int(datetime.datetime.timestamp(element))
-            # print('{} - {} {} {} ({}) : {} {}'.format(station_num, year_str, month_str,
-            #                                           day_str, timestamp, max_temp, min_temp))
 
             entry = {'day': day, 'month': month, 'year': year, 'timestamp': timestamp, 'humidity': humidity, 'windspeed': windspeed}
-            # print(station_num, date_str, entry)
-            # temperature_data[station_num] = entry
 
             if location_str in lga_data:
                 lga_data[location_str][date_str] = entry
             else:
                 lga_data[location_str] = {date_str: entry}
 
-                # temperature_data[station_num] = {date_str: entry}
-            # print(i, row)
-            # if row[5] != '':
-            # date_formatted = '{}-{}-{}'.format(row[2], row[3], row[4])
-            # max_temp[date] = {'value': float(row[5]), 'date': date_formatted}
 
 for lga, all_entries in lga_data.items():
     lga_ref = db.collection('data').document('humidity_wind').collection(lga)
@@ -79,8 +75,3 @@ for lga, all_entries in lga_data.items():
         doc_ref = lga_ref.document(date_str)
         doc_ref.set(entry)
         print(lga, date_str, entry)
-
-# for date, value in max_temp.items():
-#     print(date, value)
-#     doc_ref = station_ref.document(date)
-#     doc_ref.set(value)

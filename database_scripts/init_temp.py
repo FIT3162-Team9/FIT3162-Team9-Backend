@@ -34,6 +34,7 @@ required_stations = ['89002',
                      '90184',
                      '86068']
 
+# Temperature
 with open('../temperature_data/vic_temperature_data.csv') as file:
     reader = csv.reader(file, delimiter=",")
     for i, row in enumerate(reader):
@@ -45,20 +46,26 @@ with open('../temperature_data/vic_temperature_data.csv') as file:
 
             station_num = int(float(row[1]))
             station_str = str(station_num)
+            print(station_str, end=" ")
 
+            # Only include pre-approved stations
             if station_str not in required_stations:
                 continue
 
-            print(station_str, end=" ")
-
+            # Ensure that the month, day, and temp exist
+            # The missing values had always had one of these 3 missing hence allows us to ignore the right files
             if row[2] == "" or row[3] == "" or row[4] == "":
                 continue
 
-            year = int(float(row[2]))
-            month = int(float(row[3]))
-            day = int(float(row[4]))
-            max_temp = float(row[5])
-            min_temp = float(row[9])
+            # Ensure that type conversions occur smoothly before populating the data structure for database
+            try:
+                year = int(float(row[2]))
+                month = int(float(row[3]))
+                day = int(float(row[4]))
+                max_temp = float(row[5])
+                min_temp = float(row[9])
+            except Exception as e:
+                raise ValueError("CSV has unexpected value type:", e)
 
             lim_count += 1
 
@@ -67,7 +74,7 @@ with open('../temperature_data/vic_temperature_data.csv') as file:
             day_str = '{:02d}'.format(day)
             date_str = '{}{}{}'.format(year_str, month_str, day_str)
 
-            element = datetime.datetime(int(year), int(month), int(float(day)))
+            element = datetime.datetime(year, month, day)
             timestamp = int(datetime.datetime.timestamp(element))
 
             entry = {'day': day, 'month': month, 'year': year, 'timestamp': timestamp, 'min': min_temp, 'max': max_temp}

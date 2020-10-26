@@ -38,29 +38,32 @@ with open('../data/processed_humidity_windspeed_data.csv') as file:
             location = row[6]
             location_str = to_snake_case(location)
 
-            # print(location_str, end=" ")
-
+            # Ensure that the year, humidity, and state exist
+            # The missing values had always had one of these 3 missing hence allows us to ignore the right files
             if row[2] == "" or row[3] == "" or row[4] == "":
+                print('skipped:', row)
                 continue
 
-            day = int(float(row[0]))
-            month = int(float(row[1]))
-            year = int(float(row[2]))
-            humidity = float(row[3])
-            windspeed = float(row[7])
+            try:
+                day = int(float(row[0]))
+                month = int(float(row[1]))
+                year = int(float(row[2]))
+                humidity = float(row[3])
+                windspeed = float(row[7])
+            except Exception as e:
+                raise ValueError("CSV has unexpected value type:", e)
 
             lim_count += 1
 
-            entry_datetime = datetime.datetime(int(year), int(month), int(float(day)))
-
+            entry_datetime = datetime.datetime(year, month, day)
             extension_datetime_base = datetime.datetime(int(base_year), int(base_month), int(base_day))
 
             if entry_datetime > extension_datetime_base:
 
                 year += 1   # OVERWRITE YEAR
-                print(int(year), int(month), int(float(day)))
+
                 try:
-                    new_datetime = datetime.datetime(int(year), int(month), int(float(day)))
+                    new_datetime = datetime.datetime(year, month, day)
                 except ValueError as e:
                     print('ERROR ---', e)
                     continue
@@ -78,7 +81,6 @@ with open('../data/processed_humidity_windspeed_data.csv') as file:
                     lga_data[location_str][date_str] = entry
                 else:
                     lga_data[location_str] = {date_str: entry}
-
 
 
 for lga, all_entries in lga_data.items():
